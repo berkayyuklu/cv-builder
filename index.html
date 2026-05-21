@@ -236,20 +236,22 @@ window._orderBy=orderBy; window._serverTimestamp=serverTimestamp;
 
 window._onAuthStateChanged=onAuthStateChanged;
 
-// Auth listener
-onAuthStateChanged(auth, user => {
-  if(user){
-    window.currentUser=user;
-    document.getElementById('navName').textContent=user.displayName||user.email;
-    document.getElementById('navbar').style.display='flex';
-    goTo('dash');
-    loadDash();
-  } else {
-    window.currentUser=null;
-    document.getElementById('navbar').style.display='none';
-    goTo('auth');
-  }
-});
+// Auth listener — defer until main script is ready
+window._startAuth = () => {
+  onAuthStateChanged(auth, user => {
+    if(user){
+      window.currentUser=user;
+      document.getElementById('navName').textContent=user.displayName||user.email;
+      document.getElementById('navbar').style.display='flex';
+      window.goTo('dash');
+      window.loadDash();
+    } else {
+      window.currentUser=null;
+      document.getElementById('navbar').style.display='none';
+      window.goTo('auth');
+    }
+  });
+};
 </script>
 
 <script>
@@ -993,6 +995,53 @@ function renderElegant(d,ac){
 // ══════════════════════════════════════════════
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function timeAgo(d){const s=Math.floor((Date.now()-d)/1000);if(s<60)return 'Az önce';if(s<3600)return Math.floor(s/60)+' dk önce';if(s<86400)return Math.floor(s/3600)+' sa önce';return Math.floor(s/86400)+' gün önce';}
+
+// ── Expose all functions to window (module scope fix) ──
+window.goTo=goTo;
+window.toggleMode=toggleMode;
+window.emailAuth=emailAuth;
+window.googleLogin=googleLogin;
+window.doLogout=doLogout;
+window.loadDash=loadDash;
+window.newCV=newCV;
+window.editCV=editCV;
+window.delCV=delCV;
+window.openBuilder=openBuilder;
+window.togglePreviewPanel=togglePreviewPanel;
+window.prevStep=prevStep;
+window.nextStep=nextStep;
+window.manualSave=manualSave;
+window.downloadPDF=downloadPDF;
+window.addExp=addExp;
+window.addEdu=addEdu;
+window.addSkill=addSkill;
+window.quickSkill=quickSkill;
+window.removeSkill=removeSkill;
+window.addProject=addProject;
+window.toggleEntry=toggleEntry;
+window.removeEntry=removeEntry;
+window.loadPhoto=loadPhoto;
+window.removePhoto=removePhoto;
+window.setSum=setSum;
+window.setTheme=setTheme;
+window.setAccent=setAccent;
+window.setLayout=setLayout;
+window.renderExpList=renderExpList;
+window.renderEduList=renderEduList;
+window.renderProjList=renderProjList;
+window.renderSkillList=renderSkillList;
+window.updateSugg=updateSugg;
+window.stepPersonal=stepPersonal;
+
+// Firebase modülü yüklenince auth dinleyiciyi başlat
+if(window._startAuth){
+  window._startAuth();
+} else {
+  // Modül henüz yüklenmediyse bekle
+  const waitAuth=setInterval(()=>{
+    if(window._startAuth){clearInterval(waitAuth);window._startAuth();}
+  },50);
+}
 </script>
 </body>
 </html>
